@@ -30,11 +30,11 @@ with ShutdownProtection(4) as protected_block:
       # rollback as needed
 ```
 
-In this example, if the Python process is requested to exit via `SIGINT`, `SIGTERM`, `SIGBREAK`, `CTRL_C_EVENT`, 
-`CTRL_BREAK_EVENT`, `CTRL_CLOSE_EVENT`, `CTRL_LOGOFF_EVENT`, or `CTRL_SHUTDOWN_EVENT`, the blocks of code before and 
-after `allow_break()` are guaranteed to have at least 4 seconds of execution time before an exception is raised. This 
-time is tracked from when the context manager is initialized or from the most recent call to `allow_break()` or 
-`renew()` on the context object.
+In this example, if the Python process is requested to exit via `SIGINT`, `SIGTERM`, `SIGQUIT`, `SIGHUP`, `SIGBREAK`, 
+`CTRL_C_EVENT`, `CTRL_BREAK_EVENT`, `CTRL_CLOSE_EVENT`, `CTRL_LOGOFF_EVENT`, or `CTRL_SHUTDOWN_EVENT`, the blocks of 
+code before and after `allow_break()` are guaranteed to have at least 4 seconds of execution time before an exception is 
+raised. This time is tracked from when the context manager is initialized or from the most recent call to 
+`allow_break()` or `renew()` on the context object.
 
 It is recommended to set the execution time to no more than 4.5 seconds as Windows typically allows only 5 seconds for
 shutdown routines to execute after `CTRL_CLOSE_EVENT` is fired (when the console window is closed). If you know that you
@@ -85,8 +85,8 @@ t.join()
 ```
 
 ## Configuration
-The configure_shutdown_manager() method also takes several arguments that can be used to configure the behaviour. The 
-default value of None for each will be ignored (the previously set value will be kept).
+`configure_shutdown_manager()` takes several arguments that can be used to configure the behaviour. The default value of
+None for each will be ignored (the previously set value will be kept).
 
 * `terminate_on_logoff`: If set to `False`, `CTRL_LOGOFF_EVENT` will be ignored (defaults to `True`)
 * `terminate_on_hup`: If set to `False`, `SIGHUP` will be ignored (defaults to `True`)

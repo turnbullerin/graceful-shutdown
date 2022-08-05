@@ -108,11 +108,11 @@ class ShutdownManager:
                 import win32api
                 win32api.SetConsoleCtrlHandler(self._handle_windows_signal, True)
 
-    def register_block(self, max_exec_time=None):
+    def register_block(self, max_exec_time=None, run_at_exit=False):
         """ Registers a protected block that will be allowed to continue to execute for at least `max_exec_time`
         seconds. """
         # Check if we are going to shut down soon and, if so, crash out.
-        if self._attempts > 0:
+        if self._attempts > 0 and not run_at_exit:
             raise ShutdownImminentException()
         key = str(uuid.uuid4())
         if max_exec_time is None or max_exec_time <= 0:
@@ -254,14 +254,15 @@ class HaltProtectedBlockException(Exception):
 class ShutdownProtection:
     """ Context manager for managing shutdown protection. Returns an instance of ProtectedBlock. """
 
-    def __init__(self, max_exec_time=None):
+    def __init__(self, max_exec_time=None, run_at_exit=False):
         """ Constructor """
         self.max_exec_time = max_exec_time
+        self.run_at_exit = run_at_exit
         self._prot_block = None
 
     def __enter__(self):
         """ Implementation of __enter__() """
-        self._prot_block = ProtectedBlock(self.max_exec_time)
+        self._prot_block = ProtectedBlock(self.max_exec_time, self.run_at_exit)
         self._prot_block.protect()
         return self._prot_block
 
@@ -277,13 +278,14 @@ class ProtectedBlock:
     manager: ShutdownManager = None
 
     @injector.construct
-    def __init__(self, max_exec_time):
+    def __init__(self, max_exec_time, run_at_exit):
         self.max_exec_time = max_exec_time
+        self.run_at_exit = run_at_exit
         self._prot_key = None
 
     def protect(self):
         """ Protects the block from being interrupted. """
-        self._prot_key = self.manager.register_block(self.max_exec_time)
+        self._prot_key = self.manager.register_block(self.max_exec_time, self.run_at_exit)
 
     def unprotect(self):
         """ Removes the block from protection"""
